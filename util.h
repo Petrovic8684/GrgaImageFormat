@@ -29,9 +29,9 @@ struct grga_image
 };
 
 void save_grga_image(const char *, const struct grga_image);
-
 void compress_grga_image(struct grga_image *);
-
+void decompress_grga_image(struct grga_image *);
 struct grga_image *load_grga_image(const char *);
+void print_grga_image_data(const struct grga_image);
 
 #endif
