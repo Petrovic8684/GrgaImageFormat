@@ -56,33 +56,50 @@ void poll_events(void)
     }
 }
 
-void render(void)
+void render(struct grga_image *image, uint8_t pixel_size)
 {
+    if (image->header.depth != 8 || image->header.channels < 1 || image->header.channels > 4)
+    {
+        fprintf(stderr, "Unsupported image format.\n");
+        return;
+    }
+
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderClear(renderer);
 
-    // TODO: rendering image
+    for (uint16_t y = 0; y < image->header.height; ++y)
+    {
+        for (uint16_t x = 0; x < image->header.width; ++x)
+        {
+            uint8_t *src_pixel = &image->pixel_data[(y * image->header.width + x) * 3];
+
+            uint8_t r = src_pixel[0];
+            uint8_t g = src_pixel[1];
+            uint8_t b = src_pixel[2];
+            uint8_t a = 255;
+
+            SDL_SetRenderDrawColor(renderer, r, g, b, a);
+
+            SDL_Rect rect = {
+                x * pixel_size,
+                y * pixel_size,
+                pixel_size,
+                pixel_size};
+
+            SDL_RenderFillRect(renderer, &rect);
+        }
+    }
 
     SDL_RenderPresent(renderer);
 }
 
 void start_viewer_and_keep_running(void)
 {
-    /*uint16_t width = 2, height = 2;
-    uint8_t channels = 3, depth = 8; // RGB, 8-bit channels
-
-    struct grga_image image = {
-        {VALID_IDENTIFIER, width, height, channels, depth},
-        {255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0}};
-
-    save_grga_image("test.grga", image);*/
-
     struct grga_image result = load_grga_image("test.grga");
-    print_grga_image_data(result);
+    render(&result, 40);
 
     while (is_window_open == true)
     {
-        render();
         poll_events();
     }
 }
@@ -94,3 +111,23 @@ void cleanup(void)
 
     SDL_Quit();
 }
+
+// TODO: navbar at the top. currently only loads image.
+/*uint16_t width = 10, height = 10;
+uint8_t channels = 3, depth = 8; // RGBA, 8-bit channels
+
+struct grga_image image =
+    {
+        {VALID_IDENTIFIER, width, height, channels, depth},
+        {20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0,
+         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+         20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0}};
+
+save_grga_image("test.grga", image);*/

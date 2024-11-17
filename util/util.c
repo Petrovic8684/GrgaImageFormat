@@ -53,7 +53,7 @@ void print_grga_image_data(const struct grga_image image)
 {
     fprintf(stdout, "\n*** HEADER ***\n\nImage dimensions: %ux%u\nImage channels: %u\nImage depth: %u\n\n*** PIXEL DATA ***\n\n", image.header.width, image.header.height, image.header.channels, image.header.depth);
 
-    for (uint8_t i = 0; i < image.header.width * image.header.height * image.header.channels; i++)
+    for (uint16_t i = 0; i < image.header.width * image.header.height * image.header.channels; i++)
     {
         fprintf(stdout, "%u ", image.pixel_data[i]);
 

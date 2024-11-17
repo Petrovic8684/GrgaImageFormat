@@ -15,7 +15,7 @@ extern bool is_window_open;
 void initialize_sdl(void);
 void create_window_and_renderer(const char *);
 void poll_events(void);
-void render(void);
+void render(struct grga_image *, uint8_t);
 void start_viewer_and_keep_running(void);
 void cleanup(void);
 
