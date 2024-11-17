@@ -30,6 +30,16 @@ void create_window_and_renderer(const char *title)
         fprintf(stderr, "SDL renderer failed to initialize: %s\n", SDL_GetError());
         exit(EXIT_FAILURE);
     }
+
+    /*SDL_Surface *icon = IMG_Load("../assets/icon.ico");
+
+    if (icon == NULL)
+    {
+        fprintf(stdout, "Unable to load icon!\n");
+        return;
+    }
+
+    SDL_SetWindowIcon(window, icon);*/
 }
 
 void poll_events(void)
@@ -58,6 +68,18 @@ void render(void)
 
 void start_viewer_and_keep_running(void)
 {
+    /*uint16_t width = 2, height = 2;
+    uint8_t channels = 3, depth = 8; // RGB, 8-bit channels
+
+    struct grga_image image = {
+        {VALID_IDENTIFIER, width, height, channels, depth},
+        {255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0}};
+
+    save_grga_image("test.grga", image);*/
+
+    struct grga_image result = load_grga_image("test.grga");
+    print_grga_image_data(result);
+
     while (is_window_open == true)
     {
         render();

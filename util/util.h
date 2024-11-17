@@ -25,14 +25,14 @@ struct grga_header
 struct grga_image
 {
     struct grga_header header;
-    uint64_t *pixel_data;
+    uint8_t pixel_data[1024];
     // struct grga_metadata metadata;
 };
 
 void save_grga_image(const char *, const struct grga_image);
 void compress_grga_image(struct grga_image *);
 void decompress_grga_image(struct grga_image *);
-struct grga_image *load_grga_image(const char *);
+struct grga_image load_grga_image(const char *);
 void print_grga_image_data(const struct grga_image);
 
 #endif
