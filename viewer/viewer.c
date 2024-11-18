@@ -2,6 +2,7 @@
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
+struct grga_image *current_image = NULL;
 
 bool is_window_open = true;
 
@@ -9,7 +10,7 @@ void initialize_sdl(void)
 {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
-        fprintf(stderr, "SDL failed to initialize: %s\n", SDL_GetError());
+        perror("SDL failed to initialize!\n");
         exit(EXIT_FAILURE);
     }
 }
@@ -21,13 +22,13 @@ void create_window_and_renderer(const char *title)
 
     if (window == NULL)
     {
-        fprintf(stderr, "SDL window failed to initialize: %s\n", SDL_GetError());
+        perror("SDL window failed to initialize!\n");
         exit(EXIT_FAILURE);
     }
 
     if (renderer == NULL)
     {
-        fprintf(stderr, "SDL renderer failed to initialize: %s\n", SDL_GetError());
+        perror("SDL renderer failed to initialize!\n");
         exit(EXIT_FAILURE);
     }
 
@@ -35,8 +36,8 @@ void create_window_and_renderer(const char *title)
 
     if (icon == NULL)
     {
-        fprintf(stdout, "Unable to load icon!\n");
-        return;
+        perror("Unable to load icon!\n");
+        exit(EXIT_FAILURE);
     }
 
     SDL_SetWindowIcon(window, icon);*/
@@ -60,8 +61,8 @@ void render(struct grga_image *image, uint8_t pixel_size)
 {
     if (image->header.depth != 8 || image->header.channels < 1 || image->header.channels > 4)
     {
-        fprintf(stderr, "Unsupported image format.\n");
-        return;
+        perror("Unsupported image format.\n");
+        exit(EXIT_FAILURE);
     }
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -95,8 +96,25 @@ void render(struct grga_image *image, uint8_t pixel_size)
 
 void start_viewer_and_keep_running(void)
 {
-    struct grga_image result = load_grga_image("test.grga");
-    render(&result, 40);
+    /*uint8_t data[] = {20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0, 20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0, 20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0, 20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0, 20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0, 20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0, 20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0, 20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0};
+    struct grga_image *new_image = construct_grga_image(10, 10, 3, 8, data);
+
+    if (new_image != NULL)
+    {
+        save_grga_image("square.grga", new_image);
+        free(new_image);
+        new_image = NULL;
+    }*/
+
+    current_image = load_grga_image("square.grga");
+
+    if (current_image != NULL)
+    {
+        print_grga_image_data(current_image);
+        render(current_image, 40);
+        free(current_image);
+        current_image = NULL;
+    }
 
     while (is_window_open == true)
     {
@@ -112,22 +130,30 @@ void cleanup(void)
     SDL_Quit();
 }
 
-// TODO: navbar at the top. currently only loads image.
-/*uint16_t width = 10, height = 10;
-uint8_t channels = 3, depth = 8; // RGBA, 8-bit channels
+/*
+    uint16_t width = 10, height = 10;
+    uint8_t channels = 3, depth = 8; // RGBA, 8-bit channels
 
-struct grga_image image =
-    {
-        {VALID_IDENTIFIER, width, height, channels, depth},
-        {20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0,
-         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
-         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
-         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
-         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
-         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
-         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
-         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
-         20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
-         20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0}};
+    struct grga_image *image = malloc(sizeof(struct grga_header) + sizeof(uint8_t) * width * height * channels);
 
-save_grga_image("test.grga", image);*/
+    strcpy(image->header.identifier, VALID_IDENTIFIER);
+    image->header.width = width;
+    image->header.height = height;
+    image->header.channels = channels;
+    image->header.depth = depth;
+
+    uint8_t data[] = {20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0,
+                      20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+                      20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+                      20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+                      20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+                      20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+                      20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+                      20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+                      20, 255, 0, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 255, 90, 50, 20, 255, 0,
+                      20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0, 20, 255, 0};
+
+    memcpy(image->pixel_data, data, sizeof(uint8_t) * image->header.width * image->header.height * image->header.channels);
+
+    save_grga_image("test.grga", image);
+*/

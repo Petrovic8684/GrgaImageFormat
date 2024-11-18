@@ -9,6 +9,7 @@
 
 extern SDL_Window *window;
 extern SDL_Renderer *renderer;
+extern struct grga_image *current_image;
 
 extern bool is_window_open;
 
