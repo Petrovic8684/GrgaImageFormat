@@ -20,9 +20,9 @@ struct grga_image *construct_grga_image(uint16_t width, uint16_t height, uint8_t
     return image;
 }
 
-void save_grga_image(const char *filename, struct grga_image *image)
+void save_grga_image(const char *path, struct grga_image *image)
 {
-    FILE *file = fopen(filename, "wb");
+    FILE *file = fopen(path, "wb");
 
     if (file == NULL)
     {
@@ -45,9 +45,9 @@ void decompress_grga_image(struct grga_image *image)
 {
 }
 
-struct grga_image *load_grga_image(const char *filename)
+struct grga_image *load_grga_image(const char *path)
 {
-    FILE *file = fopen(filename, "rb");
+    FILE *file = fopen(path, "rb");
 
     if (file == NULL)
     {
