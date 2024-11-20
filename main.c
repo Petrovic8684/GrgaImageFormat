@@ -8,6 +8,5 @@ int main(int argc, char *argv[])
     start_viewer_and_keep_running(argv[1]);
 
     cleanup();
-
     return EXIT_SUCCESS;
 }

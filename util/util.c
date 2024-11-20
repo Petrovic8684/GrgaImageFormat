@@ -1,5 +1,8 @@
 #include "util.h"
 
+char image_files[100][256];
+uint16_t image_count = 0;
+
 struct grga_image *construct_grga_image(uint16_t width, uint16_t height, uint8_t channels, uint8_t depth, uint8_t data[])
 {
     struct grga_image *image = malloc(sizeof(struct grga_header) + sizeof(uint8_t) * width * height * channels);
@@ -51,8 +54,8 @@ struct grga_image *load_grga_image(const char *path)
 
     if (file == NULL)
     {
-        perror("Error while loading file!\n");
-        exit(EXIT_FAILURE);
+        fprintf(stdout, "Error while loading file!\n");
+        return NULL;
     }
 
     struct grga_header *header = malloc(sizeof(struct grga_header));
@@ -79,7 +82,7 @@ struct grga_image *load_grga_image(const char *path)
 
     memcpy(&(image->header), header, sizeof(struct grga_header));
 
-    if (strcmp(image->header.identifier, VALID_IDENTIFIER))
+    if (strcmp(image->header.identifier, VALID_IDENTIFIER) || image->header.depth != IMAGE_DEPTH || image->header.channels < MIN_CHANNELS || image->header.channels > MAX_CHANNELS)
     {
         free(header);
         header = NULL;
@@ -87,8 +90,8 @@ struct grga_image *load_grga_image(const char *path)
         image = NULL;
         fclose(file);
 
-        perror("File format not valid!\n");
-        exit(EXIT_FAILURE);
+        fprintf(stdout, "File not a .grga image!\n");
+        return NULL;
     }
 
     free(header);
@@ -120,4 +123,59 @@ void print_grga_image_data(struct grga_image *image)
             fprintf(stdout, "\n");
         }
     }
+}
+
+void search_directory_contents(const char *path)
+{
+    fprintf(stdout, "Interpreting path as a directory...\n");
+    DIR *dir = opendir(path);
+
+    if (dir == NULL)
+    {
+        perror("Error opening directory!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    struct dirent *entry;
+    char full_path[256];
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if (strstr(entry->d_name, ".grga"))
+        {
+            strcpy(full_path, path);
+            strcat(full_path, "/");
+            strcat(full_path, entry->d_name);
+
+            printf("%s\n", full_path);
+            strcpy(image_files[image_count++], full_path);
+            strcpy(full_path, "");
+        }
+    }
+
+    closedir(dir);
+}
+
+uint16_t find_index_by_name(const char *filename, const char filenames[100][256], uint16_t count)
+{
+    for (uint16_t i = 0; i < count; i++)
+        if (strcmp(filenames[i], filename) == 0)
+            return i;
+
+    perror("Could not find file index by filename!\n");
+    exit(EXIT_FAILURE);
+}
+
+const char *get_filename_from_path(const char *path)
+{
+    const char *last_slash = strrchr(path, '/');
+    if (!last_slash)
+        last_slash = strrchr(path, '\\');
+
+    if (last_slash)
+        return last_slash + 1;
+    else
+        return path;
+
+    perror("Could not determine file name based on path!\n");
+    exit(EXIT_FAILURE);
 }

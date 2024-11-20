@@ -15,6 +15,7 @@
 extern SDL_Window *window;
 extern SDL_Renderer *renderer;
 extern struct grga_image *current_image;
+extern uint16_t current_image_index;
 
 extern uint8_t pixel_size;
 extern int offset_x, offset_y;
@@ -25,7 +26,10 @@ extern char *base_path;
 void initialize_sdl(void);
 void create_window_and_renderer(const char *);
 void poll_events(void);
-void handle_zoom(SDL_Event *);
+void handle_window_resize(SDL_Event *);
+void handle_image_zoom(SDL_Event *);
+void handle_image_change(SDL_Event *);
+void handle_file_drop(SDL_Event *);
 void render(void);
 void set_current_image(const char *);
 void start_viewer_and_keep_running(const char *path);
