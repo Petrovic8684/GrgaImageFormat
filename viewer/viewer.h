@@ -2,11 +2,8 @@
 #define VIEWER_H
 
 #include "../util/util.h"
-#include <SDL2/SDL.h>
+#include "../gui/gui.h"
 #include <SDL2/SDL_image.h>
-
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 550
 
 #define MAX_PIXEL_SIZE 100
 #define MIN_PIXEL_SIZE 1
@@ -14,6 +11,10 @@
 
 extern SDL_Window *window;
 extern SDL_Renderer *renderer;
+
+extern int window_width;
+extern int window_height;
+
 extern struct grga_image *current_image;
 extern uint16_t current_image_index;
 
@@ -30,9 +31,10 @@ void handle_window_resize(SDL_Event *);
 void handle_image_zoom(SDL_Event *);
 void handle_image_change(SDL_Event *);
 void handle_file_drop(SDL_Event *);
+void init_gui(void);
 void render(void);
 void set_current_image(const char *);
-void start_viewer_and_keep_running(const char *path);
+void run_viewer(const char *);
 void cleanup(void);
 
 #endif
