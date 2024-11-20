@@ -90,10 +90,10 @@ void render_button(SDL_Renderer *renderer, struct button *button, TTF_Font *font
 
     SDL_Color text_color = {0, 0, 0, 255};
     SDL_Rect text_rect = {
-        button->rect.x + button->rect.w / 4,
-        button->rect.y + button->rect.h / 4,
-        button->rect.w / 2,
-        button->rect.h / 2};
+        button->rect.x + button->rect.w / 3,
+        button->rect.y + button->rect.h / 8,
+        button->rect.w / 2.5,
+        button->rect.h};
 
     render_text(renderer, button->label, &text_rect, text_color, font);
 }
@@ -105,21 +105,6 @@ void render_slider(SDL_Renderer *renderer, struct slider *slider)
 
     SDL_SetRenderDrawColor(renderer, 100, 100, 255, 255);
     SDL_RenderFillRect(renderer, &slider->knob);
-}
-
-void render_scrollbar(SDL_Renderer *renderer, struct scrollbar *scrollbar)
-{
-    SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
-    SDL_RenderFillRect(renderer, &scrollbar->rect);
-
-    SDL_Rect handle = {
-        scrollbar->rect.x,
-        scrollbar->rect.y + scrollbar->position * (scrollbar->rect.h / scrollbar->max_position),
-        scrollbar->rect.w,
-        20};
-
-    SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
-    SDL_RenderFillRect(renderer, &handle);
 }
 
 void detect_click_on_button(SDL_Event *event, struct button *btn)

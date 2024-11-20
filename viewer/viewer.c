@@ -10,14 +10,13 @@ struct grga_image *current_image = NULL;
 uint16_t current_image_index = 0;
 
 uint8_t pixel_size = 1;
-int offset_x = 0, offset_y = 0;
+int offset_x = 1, offset_y = 1;
 
 bool is_window_open = true;
 char *base_path = NULL;
 
 struct button btn_prev, btn_next;
 struct slider zoom_slider;
-struct scrollbar h_scrollbar, v_scrollbar;
 
 TTF_Font *font;
 
@@ -227,8 +226,8 @@ void render(void)
             SDL_SetRenderDrawColor(renderer, r, g, b, 255);
 
             SDL_Rect rect = {
-                offset_x + x * pixel_size,
-                offset_y + y * pixel_size,
+                (window_width - current_image->header.width) / 2 + offset_x + x * pixel_size,
+                (window_height - current_image->header.height) / 3 + offset_y + y * pixel_size,
                 pixel_size,
                 pixel_size};
 

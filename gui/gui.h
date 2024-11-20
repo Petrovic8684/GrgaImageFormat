@@ -31,7 +31,6 @@ void render_welcome_message(SDL_Renderer *, int, int, TTF_Font *);
 void initialize_slider(struct slider *, int, int, int, int, uint8_t, uint8_t, uint8_t);
 void render_button(SDL_Renderer *, struct button *, TTF_Font *);
 void render_slider(SDL_Renderer *, struct slider *);
-void render_scrollbar(SDL_Renderer *, struct scrollbar *);
 void detect_click_on_button(SDL_Event *, struct button *);
 void detect_click_on_slider(SDL_Event *, struct slider *);
 void detect_click_release_from_slider(SDL_Event *, struct slider *);
