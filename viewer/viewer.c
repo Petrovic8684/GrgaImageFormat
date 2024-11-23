@@ -9,8 +9,8 @@ int window_height = 600;
 struct grga_image *current_image = NULL;
 uint16_t current_image_index = 0;
 
-uint8_t pixel_size = 1;
-int offset_x = 1, offset_y = 1;
+float pixel_size = 1.0;
+int offset_x = 0, offset_y = 0;
 
 bool is_window_open = true;
 
@@ -173,12 +173,12 @@ void render(void)
 
     uint8_t *src_pixel;
     uint8_t r, g, b;
-    SDL_Rect rect;
+    SDL_FRect rect;
 
     for (uint16_t y = 0; y < current_image->header.height; y++)
         for (uint16_t x = 0; x < current_image->header.width; x++)
         {
-            src_pixel = &current_image->pixel_data[(y * current_image->header.width + x) * 3];
+            src_pixel = &current_image->pixel_data[(y * current_image->header.width + x) * current_image->header.channels];
 
             r = src_pixel[0];
             g = src_pixel[1];
@@ -191,7 +191,7 @@ void render(void)
             rect.w = pixel_size;
             rect.h = pixel_size;
 
-            SDL_RenderFillRect(renderer, &rect);
+            SDL_RenderFillRectF(renderer, &rect);
         }
 
     if (image_count > 0)

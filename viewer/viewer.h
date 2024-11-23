@@ -4,9 +4,9 @@
 #include "../util/util.h"
 #include "../gui/gui.h"
 
-#define MAX_PIXEL_SIZE 100
-#define MIN_PIXEL_SIZE 1
-#define PIXEL_ZOOM_STEP 1
+#define MAX_PIXEL_SIZE 10.0
+#define MIN_PIXEL_SIZE 0.3
+#define PIXEL_ZOOM_STEP 0.03
 
 void initialize_sdl(void);
 void create_window_and_renderer(const char *title);
