@@ -186,8 +186,8 @@ void render(void)
 
             SDL_SetRenderDrawColor(renderer, r, g, b, 255);
 
-            rect.x = (window_width - current_image->header.width) / 2 + offset_x + x * pixel_size;
-            rect.y = (window_height - current_image->header.height) / 3 + offset_y + y * pixel_size;
+            rect.x = (window_width - current_image->header.width * pixel_size) / 2 + offset_x + x * pixel_size;
+            rect.y = (window_height - current_image->header.height * pixel_size) / 3 + offset_y + y * pixel_size;
             rect.w = pixel_size;
             rect.h = pixel_size;
 
