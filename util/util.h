@@ -13,7 +13,7 @@
 #define MIN_CHANNELS 1
 #define MAX_CHANNELS 4
 
-extern char image_files[100][256];
+extern char image_files[256][256];
 extern uint16_t image_count;
 
 struct grga_header
@@ -31,14 +31,12 @@ struct grga_image
     uint8_t pixel_data[];
 };
 
-struct grga_image *construct_grga_image(uint16_t, uint16_t, uint8_t, uint8_t, uint8_t[]);
-void save_grga_image(const char *, struct grga_image *);
-void compress_grga_image(struct grga_image *);
-void decompress_grga_image(struct grga_image *);
-struct grga_image *load_grga_image(const char *);
-void print_grga_image_data(struct grga_image *);
-void search_directory_contents(const char *);
-uint16_t find_index_by_name(const char *, const char[100][256], uint16_t);
-const char *get_filename_from_path(const char *);
+struct grga_image *construct_grga_image(uint16_t width, uint16_t height, uint8_t channels, uint8_t depth, uint8_t data[]);
+void save_grga_image(const char *path, struct grga_image *image);
+void compress_grga_image(struct grga_image *image);
+void decompress_grga_image(struct grga_image *image);
+struct grga_image *load_grga_image(const char *path);
+void print_grga_image_data(struct grga_image *image);
+void search_directory_contents(const char *path);
 
 #endif

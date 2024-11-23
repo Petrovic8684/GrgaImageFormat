@@ -1,6 +1,6 @@
 #include "util.h"
 
-char image_files[100][256];
+char image_files[256][256];
 uint16_t image_count = 0;
 
 struct grga_image *construct_grga_image(uint16_t width, uint16_t height, uint8_t channels, uint8_t depth, uint8_t data[])
@@ -153,29 +153,4 @@ void search_directory_contents(const char *path)
     }
 
     closedir(dir);
-}
-
-uint16_t find_index_by_name(const char *filename, const char filenames[100][256], uint16_t count)
-{
-    for (uint16_t i = 0; i < count; i++)
-        if (strcmp(filenames[i], filename) == 0)
-            return i;
-
-    perror("Could not find file index by filename!\n");
-    exit(EXIT_FAILURE);
-}
-
-const char *get_filename_from_path(const char *path)
-{
-    const char *last_slash = strrchr(path, '/');
-    if (!last_slash)
-        last_slash = strrchr(path, '\\');
-
-    if (last_slash)
-        return last_slash + 1;
-    else
-        return path;
-
-    perror("Could not determine file name based on path!\n");
-    exit(EXIT_FAILURE);
 }

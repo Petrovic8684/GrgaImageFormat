@@ -13,12 +13,9 @@ uint8_t pixel_size = 1;
 int offset_x = 1, offset_y = 1;
 
 bool is_window_open = true;
-char *base_path = NULL;
 
 struct button btn_prev, btn_next;
 struct slider zoom_slider;
-
-TTF_Font *font;
 
 void initialize_sdl(void)
 {
@@ -31,21 +28,6 @@ void initialize_sdl(void)
     if (TTF_Init() == -1)
     {
         perror("TTF failed to initialize!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    font = TTF_OpenFont("assets/runescape.ttf", FONT_SIZE);
-    if (!font)
-    {
-        perror("Failed to load font!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    base_path = SDL_GetBasePath();
-
-    if (base_path == NULL)
-    {
-        perror("Could not identify base path!\n");
         exit(EXIT_FAILURE);
     }
 }
@@ -68,23 +50,6 @@ void create_window_and_renderer(const char *title)
     }
 
     SDL_EventState(SDL_DROPFILE, SDL_ENABLE);
-
-    char *icon_path;
-    sprintf(icon_path, "%s%s", base_path, "assets/icon.png");
-
-    SDL_Surface *icon = IMG_Load(icon_path);
-
-    if (icon == NULL)
-    {
-        perror("Unable to load icon!\n");
-        exit(EXIT_FAILURE);
-    }
-
-    SDL_SetWindowIcon(window, icon);
-    SDL_FreeSurface(icon);
-
-    free(icon_path);
-    icon_path = NULL;
 }
 
 void poll_events(void)
@@ -106,7 +71,7 @@ void poll_events(void)
             detect_click_on_slider(&event, &zoom_slider);
             break;
         case SDL_MOUSEBUTTONUP:
-            detect_click_release_from_slider(&event, &zoom_slider);
+            detect_release_from_slider(&event, &zoom_slider);
             break;
         case SDL_MOUSEMOTION:
             detect_drag_slider(&event, &zoom_slider, &pixel_size, &render);
@@ -186,17 +151,10 @@ void handle_file_drop(SDL_Event *event)
 
 void init_gui(void)
 {
-    btn_prev = (struct button){
-        .rect = {10, window_height / 2 - 20, 60, 40},
-        .label = "<",
-        .callback = change_to_previous_image};
+    initialize_button(&btn_prev, 10, window_height / 2 - 20, 60, 40, "<", &change_to_previous_image);
+    initialize_button(&btn_next, window_width - 70, window_height / 2 - 20, 60, 40, ">", &change_to_next_image);
 
-    btn_next = (struct button){
-        .rect = {window_width - 70, window_height / 2 - 20, 60, 40},
-        .label = ">",
-        .callback = change_to_next_image};
-
-    initialize_slider(&zoom_slider, window_width, window_height, 300, 20, MIN_PIXEL_SIZE, MAX_PIXEL_SIZE, pixel_size);
+    initialize_slider(&zoom_slider, (window_width - 300) / 2, window_height - 30, 300, 20, MIN_PIXEL_SIZE, MAX_PIXEL_SIZE, pixel_size);
 }
 
 void render(void)
@@ -206,13 +164,16 @@ void render(void)
 
     if (current_image == NULL)
     {
-        render_welcome_message(renderer, window_width, window_height, font);
+        render_text(renderer, "Drag and drop any .grga image into viewer to start.", window_width, window_height, 0, -20, 30);
+        render_text(renderer, "Alternatively, drag and drop a directory containing .grga images.", window_width, window_height, 0, 20, 24);
         SDL_RenderPresent(renderer);
+
         return;
     }
 
     uint8_t *src_pixel;
     uint8_t r, g, b;
+    SDL_Rect rect;
 
     for (uint16_t y = 0; y < current_image->header.height; y++)
         for (uint16_t x = 0; x < current_image->header.width; x++)
@@ -225,19 +186,18 @@ void render(void)
 
             SDL_SetRenderDrawColor(renderer, r, g, b, 255);
 
-            SDL_Rect rect = {
-                (window_width - current_image->header.width) / 2 + offset_x + x * pixel_size,
-                (window_height - current_image->header.height) / 3 + offset_y + y * pixel_size,
-                pixel_size,
-                pixel_size};
+            rect.x = (window_width - current_image->header.width) / 2 + offset_x + x * pixel_size;
+            rect.y = (window_height - current_image->header.height) / 3 + offset_y + y * pixel_size;
+            rect.w = pixel_size;
+            rect.h = pixel_size;
 
             SDL_RenderFillRect(renderer, &rect);
         }
 
     if (image_count > 0)
     {
-        render_button(renderer, &btn_prev, font);
-        render_button(renderer, &btn_next, font);
+        render_button(renderer, &btn_prev);
+        render_button(renderer, &btn_next);
     }
     render_slider(renderer, &zoom_slider);
 
@@ -257,7 +217,7 @@ void set_current_image(const char *path)
         search_directory_contents(path);
         if (image_count <= 0)
         {
-            perror("Invalid file path!\n");
+            perror("Directory contains no .grga images!\n");
             exit(EXIT_FAILURE);
         }
 
@@ -267,6 +227,8 @@ void set_current_image(const char *path)
 
 void run_viewer(const char *path)
 {
+    load_window_icon(window, "assets/icon.png");
+
     if (path != NULL)
         set_current_image(path);
 
@@ -282,13 +244,11 @@ void cleanup(void)
     free(current_image);
     current_image = NULL;
 
-    SDL_free(base_path);
-
-    TTF_CloseFont(font);
+    gui_cleanup();
     TTF_Quit();
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
 
-    // SDL_Quit(); // TODO: See why this line causes a seg fault.
+    SDL_Quit();
 }
