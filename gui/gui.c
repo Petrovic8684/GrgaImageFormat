@@ -56,25 +56,39 @@ void render_text(SDL_Renderer *renderer, const char *text, int parent_width, int
     SDL_DestroyTexture(text_texture);
 }
 
-void initialize_slider(struct slider *slider, int x, int y, int w, int h, float min_value, float max_value, float initial_value)
+void initialize_slider(struct slider *slider, int x, int y, int w, int h, float min_value, float max_value, float initial_value, SDL_Color track_color, SDL_Color knob_color, bool is_vertical, bool smaller_track)
 {
     slider->track.x = x;
     slider->track.y = y;
     slider->track.w = w;
-    slider->track.h = h / 2;
+    slider->track.h = smaller_track ? h / 2 : h;
+    slider->is_vertical = is_vertical;
 
-    slider->knob.w = h;
-    slider->knob.h = h;
-    slider->knob.x = x + (initial_value - min_value) * (w - slider->knob.w) / (max_value - min_value);
-    slider->knob.y = y - (h / 4);
+    if (is_vertical == true)
+    {
+        slider->knob.w = w;
+        slider->knob.h = w;
+        slider->knob.x = smaller_track ? x - (w / 4) : x;
+        slider->knob.y = y + (initial_value - min_value) * (h - slider->knob.h) / (max_value - min_value);
+    }
+    else
+    {
+        slider->knob.w = h;
+        slider->knob.h = h;
+        slider->knob.x = x + (initial_value - min_value) * (w - slider->knob.w) / (max_value - min_value);
+        slider->knob.y = smaller_track ? y - (h / 4) : y;
+    }
 
     slider->min_value = min_value;
     slider->max_value = max_value;
     slider->current_value = initial_value;
     slider->is_dragging = false;
+
+    slider->track_color = track_color;
+    slider->knob_color = knob_color;
 }
 
-void initialize_button(struct button *button, int x, int y, int w, int h, const char *label, void (*callback)())
+void initialize_button(struct button *button, int x, int y, int w, int h, const char *label, SDL_Color bg_color, void (*callback)())
 {
     button->rect.x = x;
     button->rect.y = y;
@@ -82,12 +96,13 @@ void initialize_button(struct button *button, int x, int y, int w, int h, const 
     button->rect.h = h;
 
     button->label = label;
+    button->bg_color = bg_color;
     button->callback = callback;
 }
 
 void render_button(SDL_Renderer *renderer, struct button *button)
 {
-    SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+    SDL_SetRenderDrawColor(renderer, button->bg_color.r, button->bg_color.g, button->bg_color.b, button->bg_color.a);
     SDL_RenderFillRect(renderer, &button->rect);
 
     render_text(renderer, button->label, button->rect.w, button->rect.h, button->rect.x, button->rect.y + 5, 40);
@@ -95,10 +110,10 @@ void render_button(SDL_Renderer *renderer, struct button *button)
 
 void render_slider(SDL_Renderer *renderer, struct slider *slider)
 {
-    SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+    SDL_SetRenderDrawColor(renderer, slider->track_color.r, slider->track_color.g, slider->track_color.b, slider->track_color.a);
     SDL_RenderFillRect(renderer, &slider->track);
 
-    SDL_SetRenderDrawColor(renderer, 100, 100, 255, 255);
+    SDL_SetRenderDrawColor(renderer, slider->knob_color.r, slider->knob_color.g, slider->knob_color.b, slider->knob_color.a);
     SDL_RenderFillRect(renderer, &slider->knob);
 }
 
@@ -126,25 +141,42 @@ void detect_release_from_slider(SDL_Event *event, struct slider *slider)
     slider->is_dragging = false;
 }
 
-void detect_drag_slider(SDL_Event *event, struct slider *slider, float *pixel_size, void (*render)(void))
+void detect_drag_slider(SDL_Event *event, struct slider *slider, float *actual_parameter_to_change, void (*callback)(void))
 {
     if (!slider->is_dragging)
         return;
 
-    int mx = event->motion.x;
+    int mouse_position = slider->is_vertical ? event->motion.y : event->motion.x;
 
-    slider->knob.x = mx - slider->knob.w / 2;
-    if (slider->knob.x < slider->track.x)
-        slider->knob.x = slider->track.x;
-    else if (slider->knob.x > slider->track.x + slider->track.w - slider->knob.w)
-        slider->knob.x = slider->track.x + slider->track.w - slider->knob.w;
+    if (slider->is_vertical)
+    {
+        slider->knob.y = mouse_position - slider->knob.h / 2;
 
-    slider->current_value = slider->min_value +
-                            (slider->knob.x - slider->track.x) * (slider->max_value - slider->min_value) /
-                                (slider->track.w - slider->knob.w);
+        if (slider->knob.y < slider->track.y)
+            slider->knob.y = slider->track.y;
+        else if (slider->knob.y > slider->track.y + slider->track.h - slider->knob.h)
+            slider->knob.y = slider->track.y + slider->track.h - slider->knob.h;
 
-    *pixel_size = slider->current_value;
-    render();
+        slider->current_value = slider->min_value +
+                                (slider->knob.y - slider->track.y) * (slider->max_value - slider->min_value) /
+                                    (slider->track.h - slider->knob.h);
+    }
+    else
+    {
+        slider->knob.x = mouse_position - slider->knob.w / 2;
+
+        if (slider->knob.x < slider->track.x)
+            slider->knob.x = slider->track.x;
+        else if (slider->knob.x > slider->track.x + slider->track.w - slider->knob.w)
+            slider->knob.x = slider->track.x + slider->track.w - slider->knob.w;
+
+        slider->current_value = slider->min_value +
+                                (slider->knob.x - slider->track.x) * (slider->max_value - slider->min_value) /
+                                    (slider->track.w - slider->knob.w);
+    }
+
+    *actual_parameter_to_change = slider->current_value;
+    callback();
 }
 
 void gui_cleanup(void)

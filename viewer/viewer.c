@@ -10,12 +10,13 @@ struct grga_image *current_image = NULL;
 uint16_t current_image_index = 0;
 
 float pixel_size = 1.0;
-int offset_x = 0, offset_y = 0;
+float offset_x = 0.0, offset_y = 0.0;
 
 bool is_window_open = true;
 
 struct button btn_prev, btn_next;
 struct slider zoom_slider;
+struct slider horizontal_scrollbar, vertical_scrollbar;
 
 void initialize_sdl(void)
 {
@@ -69,12 +70,18 @@ void poll_events(void)
             detect_click_on_button(&event, &btn_prev);
             detect_click_on_button(&event, &btn_next);
             detect_click_on_slider(&event, &zoom_slider);
+            detect_click_on_slider(&event, &horizontal_scrollbar);
+            detect_click_on_slider(&event, &vertical_scrollbar);
             break;
         case SDL_MOUSEBUTTONUP:
             detect_release_from_slider(&event, &zoom_slider);
+            detect_release_from_slider(&event, &horizontal_scrollbar);
+            detect_release_from_slider(&event, &vertical_scrollbar);
             break;
         case SDL_MOUSEMOTION:
             detect_drag_slider(&event, &zoom_slider, &pixel_size, &render);
+            detect_drag_slider(&event, &horizontal_scrollbar, &offset_x, &render);
+            detect_drag_slider(&event, &vertical_scrollbar, &offset_y, &render);
             break;
         case SDL_MOUSEWHEEL:
             handle_image_zoom(&event);
@@ -119,7 +126,7 @@ void handle_image_zoom(SDL_Event *event)
 
 void change_to_previous_image(void)
 {
-    if (current_image_index <= 0)
+    if (image_count <= 0 || current_image_index <= 0)
         return;
 
     set_current_image(image_files[--current_image_index]);
@@ -128,7 +135,7 @@ void change_to_previous_image(void)
 
 void change_to_next_image(void)
 {
-    if (current_image_index >= image_count - 1)
+    if (image_count <= 0 || current_image_index >= image_count - 1)
         return;
 
     set_current_image(image_files[++current_image_index]);
@@ -145,16 +152,21 @@ void handle_image_change(SDL_Event *event)
 
 void handle_file_drop(SDL_Event *event)
 {
+    image_count = 0;
+    current_image_index = 0;
+
     set_current_image(event->drop.file);
     render();
 }
 
 void init_gui(void)
 {
-    initialize_button(&btn_prev, 10, window_height / 2 - 20, 60, 40, "<", &change_to_previous_image);
-    initialize_button(&btn_next, window_width - 70, window_height / 2 - 20, 60, 40, ">", &change_to_next_image);
+    initialize_button(&btn_prev, 40, window_height / 2 - 20, 60, 40, "<", (SDL_Color){210, 210, 210, 255}, &change_to_previous_image);
+    initialize_button(&btn_next, window_width - 100, window_height / 2 - 20, 60, 40, ">", (SDL_Color){210, 210, 210, 255}, &change_to_next_image);
 
-    initialize_slider(&zoom_slider, (window_width - 300) / 2, window_height - 30, 300, 20, MIN_PIXEL_SIZE, MAX_PIXEL_SIZE, pixel_size);
+    initialize_slider(&zoom_slider, (window_width - 300) / 2, window_height - 50, 300, 20, MIN_PIXEL_SIZE, MAX_PIXEL_SIZE, pixel_size, (SDL_Color){210, 210, 210, 255}, (SDL_Color){100, 100, 255, 255}, false, true);
+    initialize_slider(&horizontal_scrollbar, 0, window_height - 15, window_width - 15, 15, -500, 500, 0, (SDL_Color){230, 230, 230, 255}, (SDL_Color){200, 200, 200, 255}, false, false);
+    initialize_slider(&vertical_scrollbar, window_width - 15, 0, 15, window_height - 15, -500, 500, 0, (SDL_Color){230, 230, 230, 255}, (SDL_Color){200, 200, 200, 255}, true, false);
 }
 
 void render(void)
@@ -175,10 +187,14 @@ void render(void)
     uint8_t r, g, b;
     SDL_FRect rect;
 
-    for (uint16_t y = 0; y < current_image->header.height; y++)
-        for (uint16_t x = 0; x < current_image->header.width; x++)
+    uint16_t width = current_image->header.width;
+    uint16_t height = current_image->header.height;
+    uint8_t channels = current_image->header.channels;
+
+    for (uint16_t y = 0; y < height; y++)
+        for (uint16_t x = 0; x < width; x++)
         {
-            src_pixel = &current_image->pixel_data[(y * current_image->header.width + x) * current_image->header.channels];
+            src_pixel = &current_image->pixel_data[(y * width + x) * channels];
 
             r = src_pixel[0];
             g = src_pixel[1];
@@ -186,8 +202,8 @@ void render(void)
 
             SDL_SetRenderDrawColor(renderer, r, g, b, 255);
 
-            rect.x = (window_width - current_image->header.width * pixel_size) / 2 + offset_x + x * pixel_size;
-            rect.y = (window_height - current_image->header.height * pixel_size) / 3 + offset_y + y * pixel_size;
+            rect.x = (window_width - width * pixel_size) / 2 - offset_x + x * pixel_size;
+            rect.y = (window_height - height * pixel_size) / 3 - offset_y + y * pixel_size;
             rect.w = pixel_size;
             rect.h = pixel_size;
 
@@ -200,6 +216,8 @@ void render(void)
         render_button(renderer, &btn_next);
     }
     render_slider(renderer, &zoom_slider);
+    render_slider(renderer, &horizontal_scrollbar);
+    render_slider(renderer, &vertical_scrollbar);
 
     SDL_RenderPresent(renderer);
 }
@@ -227,7 +245,7 @@ void set_current_image(const char *path)
 
 void run_viewer(const char *path)
 {
-    load_window_icon(window, "assets/icon.png");
+    load_window_icon(window, "assets/magnifier.png");
 
     if (path != NULL)
         set_current_image(path);

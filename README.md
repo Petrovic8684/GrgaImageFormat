@@ -74,3 +74,8 @@ git clone https://github.com/Petrovic8684/GrgaImageFormat.git
 cd GrgaImageFormat
 make
 ```
+
+### Credits
+
+- GrgaViewer magnifier icon: <a target="_blank" href="https://icons8.com/icon/12773/search">Search</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+- GrgaConverter loop icon: <a target="_blank" href="https://icons8.com/icon/13113/refresh">convert</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
