@@ -101,6 +101,30 @@ void initialize_slider(struct slider *slider, SDL_Rect rect_position_size, SDL_C
     slider->knob_color = knob_color;
 }
 
+void change_slider_values(struct slider *slider, int window_width, int window_height, int image_dimension, float pixel_size, float current_value)
+{
+    slider->current_value = current_value;
+
+    if (slider->is_vertical == true)
+    {
+        slider->min_value = (window_height - image_dimension * pixel_size) / 2.0;
+        slider->max_value = (window_height - image_dimension * pixel_size) / -2.0;
+        slider->knob.y = slider->track.y + ((slider->current_value - slider->min_value) * (slider->track.h - slider->knob.h)) / (slider->max_value - slider->min_value);
+
+        slider->knob.h = slider->track.h - ((window_height - image_dimension * pixel_size) / -2.0);
+        slider->knob.h = slider->knob.h < 15 ? 15 : slider->knob.h; // Minimum knob height
+
+        return;
+    }
+
+    slider->min_value = (window_width - image_dimension * pixel_size) / 2.0;
+    slider->max_value = (window_width - image_dimension * pixel_size) / -2.0;
+    slider->knob.x = slider->track.x + ((slider->current_value - slider->min_value) * (slider->track.w - slider->knob.w)) / (slider->max_value - slider->min_value);
+
+    slider->knob.w = slider->track.w - ((window_width - image_dimension * pixel_size) / -2.0);
+    slider->knob.w = slider->knob.w < 15 ? 15 : slider->knob.w; // Minimum knob width
+}
+
 void render_button(SDL_Renderer *renderer, struct button *button)
 {
     SDL_SetRenderDrawColor(renderer, button->bg_color.r, button->bg_color.g, button->bg_color.b, button->bg_color.a);

@@ -174,14 +174,40 @@ bool is_image_clipping_vertically(void)
     return true;
 }
 
+void limit_offsets(void)
+{
+    float overrun_x = (window_width - current_image->header.width * pixel_size) / 2.0;
+    float overrun_y = (window_height - current_image->header.height * pixel_size) / 2.0;
+
+    if (current_image->header.width * pixel_size < window_width)
+        offset_x = 0.0;
+    else
+    {
+        if (offset_x < overrun_x)
+            offset_x = overrun_x;
+        if (offset_x > -overrun_x)
+            offset_x = -overrun_x;
+    }
+
+    if (current_image->header.height * pixel_size < window_height)
+        offset_y = 0.0;
+    else
+    {
+        if (offset_y < overrun_y)
+            offset_y = overrun_y;
+        if (offset_y > -overrun_y)
+            offset_y = -overrun_y;
+    }
+}
+
 void init_gui(void)
 {
     initialize_button(&btn_prev, (SDL_Rect){40, window_height / 2 - 20, 60, 40}, (SDL_Color){210, 210, 210, 255}, "<", &change_to_previous_image);
     initialize_button(&btn_next, (SDL_Rect){window_width - 100, window_height / 2 - 20, 60, 40}, (SDL_Color){210, 210, 210, 255}, ">", &change_to_next_image);
 
     initialize_slider(&zoom_slider, (SDL_Rect){(window_width - 300) / 2, window_height - 50, 300, 20}, (SDL_Color){210, 210, 210, 255}, (SDL_Color){100, 100, 255, 255}, false, MIN_PIXEL_SIZE, MAX_PIXEL_SIZE, pixel_size, true);
-    initialize_slider(&horizontal_scrollbar, (SDL_Rect){0, window_height - 15, window_width - 15, 15}, (SDL_Color){230, 230, 230, 255}, (SDL_Color){200, 200, 200, 255}, false, -500, 500, 0, false);
-    initialize_slider(&vertical_scrollbar, (SDL_Rect){window_width - 15, 0, 15, window_height - 15}, (SDL_Color){230, 230, 230, 255}, (SDL_Color){200, 200, 200, 255}, true, -500, 500, 0, false);
+    initialize_slider(&horizontal_scrollbar, (SDL_Rect){0, window_height - 15, window_width - 15, 15}, (SDL_Color){230, 230, 230, 255}, (SDL_Color){200, 200, 200, 255}, false, -500, 500, 0, false); // Slider values are calculated at runtime.
+    initialize_slider(&vertical_scrollbar, (SDL_Rect){window_width - 15, 0, 15, window_height - 15}, (SDL_Color){230, 230, 230, 255}, (SDL_Color){200, 200, 200, 255}, true, -500, 500, 0, false);    // Slider values are calculated at runtime.
 }
 
 void render(void)
@@ -198,18 +224,16 @@ void render(void)
         return;
     }
 
+    limit_offsets();
+
     uint8_t *src_pixel;
     uint8_t r, g, b;
     SDL_FRect rect;
 
-    uint16_t width = current_image->header.width;
-    uint16_t height = current_image->header.height;
-    uint8_t channels = current_image->header.channels;
-
-    for (uint16_t y = 0; y < height; y++)
-        for (uint16_t x = 0; x < width; x++)
+    for (uint16_t y = 0; y < current_image->header.height; y++)
+        for (uint16_t x = 0; x < current_image->header.width; x++)
         {
-            src_pixel = &current_image->pixel_data[(y * width + x) * channels];
+            src_pixel = &current_image->pixel_data[(y * current_image->header.width + x) * current_image->header.channels];
 
             r = src_pixel[0];
             g = src_pixel[1];
@@ -217,8 +241,8 @@ void render(void)
 
             SDL_SetRenderDrawColor(renderer, r, g, b, 255);
 
-            rect.x = (window_width - width * pixel_size) / 2 - offset_x + x * pixel_size;
-            rect.y = (window_height - height * pixel_size) / 2 - offset_y + y * pixel_size;
+            rect.x = (window_width - current_image->header.width * pixel_size) / 2 - offset_x + x * pixel_size;
+            rect.y = (window_height - current_image->header.height * pixel_size) / 2 - offset_y + y * pixel_size;
             rect.w = pixel_size;
             rect.h = pixel_size;
 
@@ -234,9 +258,15 @@ void render(void)
     render_slider(renderer, &zoom_slider);
 
     if (is_image_clipping_horizontally() == false)
+    {
+        change_slider_values(&horizontal_scrollbar, window_width, window_height, current_image->header.width, pixel_size, offset_x);
         render_slider(renderer, &horizontal_scrollbar);
+    }
     if (is_image_clipping_vertically() == false)
+    {
+        change_slider_values(&vertical_scrollbar, window_width, window_height, current_image->header.height, pixel_size, offset_y);
         render_slider(renderer, &vertical_scrollbar);
+    }
 
     SDL_RenderPresent(renderer);
 }

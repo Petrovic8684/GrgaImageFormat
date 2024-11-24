@@ -1,4 +1,4 @@
-# GRGA Image Format | Viewer | Converter
+# GRGA Image Format, Viewer & Converter
 
 ## Overview
 
@@ -54,9 +54,8 @@ Compressed pixel data obtained by applying the Huffman compression algorithm to 
 
 ### Example Workflow
 
-1. Encode image data (raw or compressed).
-2. Save in `.grga` format.
-3. Load and view in GRGA Image Viewer.
+1. Convert any `.png` or `.jpeg` image to `.grga` using the GrgaConverter.
+2. Load and view in GrgaViewer.
 
 ## Installation
 

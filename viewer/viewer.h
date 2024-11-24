@@ -14,6 +14,7 @@ void run_viewer(const char *path);
 bool is_image_clipping_horizontally(void);
 bool is_image_clipping_vertically(void);
 void init_gui(void);
+void limit_offsets(void);
 void render(void);
 void poll_events(void);
 void set_current_image(const char *path);
@@ -21,6 +22,8 @@ void handle_window_resize(SDL_Event *event);
 void handle_image_zoom(SDL_Event *event);
 void handle_file_drop(SDL_Event *event);
 void handle_image_change(SDL_Event *event);
+void change_to_previous_image(void);
+void change_to_next_image(void);
 void cleanup(void);
 
 #endif
