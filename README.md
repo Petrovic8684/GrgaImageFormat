@@ -4,6 +4,8 @@
 
 **GRGA Image Viewer** is a lightweight image viewer designed to showcase and interact with images stored in a custom file format: `.grga`. The `.grga` format is a specialized image format optimized for simplicity and extensibility, incorporating compressed pixel data obtained by applying the Huffman compression algorithm to raw RGB pixel data.
 
+![welcome](https://i.imgur.com/J2yySd6.jpeg)
+
 This project includes:
 
 - A custom `.grga` image format definition.
@@ -25,6 +27,10 @@ This project includes:
   - Adjustable zoom functionality with mouse scroll or an on-screen slider.
   - Smooth panning through images using horizontal and vertical scrollbars.
   - Switching between images within a directory via arrow keys or on-screen buttons.
+
+![landscape](https://i.imgur.com/xT9qyNd.jpeg)
+
+![waterfall](https://i.imgur.com/QdW0Vmi.jpeg)
 
 - **Conversion Utility**:
   - A tool for converting `.png` and `.jpeg` images to `.grga` format.
