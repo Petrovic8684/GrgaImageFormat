@@ -11,6 +11,8 @@
 void initialize_sdl(void);
 void create_window_and_renderer(const char *title);
 void run_viewer(const char *path);
+bool is_image_clipping_horizontally(void);
+bool is_image_clipping_vertically(void);
 void init_gui(void);
 void render(void);
 void poll_events(void);

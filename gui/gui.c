@@ -56,27 +56,40 @@ void render_text(SDL_Renderer *renderer, const char *text, int parent_width, int
     SDL_DestroyTexture(text_texture);
 }
 
-void initialize_slider(struct slider *slider, int x, int y, int w, int h, float min_value, float max_value, float initial_value, SDL_Color track_color, SDL_Color knob_color, bool is_vertical, bool smaller_track)
+void initialize_button(struct button *button, SDL_Rect rect_position_size, SDL_Color bg_color, const char *label, void (*callback)(void))
 {
-    slider->track.x = x;
-    slider->track.y = y;
-    slider->track.w = w;
-    slider->track.h = smaller_track ? h / 2 : h;
+    button->rect.x = rect_position_size.x;
+    button->rect.y = rect_position_size.y;
+    button->rect.w = rect_position_size.w;
+    button->rect.h = rect_position_size.h;
+
+    button->label = label;
+    button->bg_color = bg_color;
+    button->callback = callback;
+}
+
+void initialize_slider(struct slider *slider, SDL_Rect rect_position_size, SDL_Color track_color, SDL_Color knob_color, bool is_vertical, float min_value, float max_value, float initial_value, bool smaller_track)
+{
     slider->is_vertical = is_vertical;
+
+    slider->track.x = rect_position_size.x;
+    slider->track.y = rect_position_size.y;
+    slider->track.w = rect_position_size.w;
+    slider->track.h = smaller_track ? rect_position_size.h / 2 : rect_position_size.h;
 
     if (is_vertical == true)
     {
-        slider->knob.w = w;
-        slider->knob.h = w;
-        slider->knob.x = smaller_track ? x - (w / 4) : x;
-        slider->knob.y = y + (initial_value - min_value) * (h - slider->knob.h) / (max_value - min_value);
+        slider->knob.w = rect_position_size.w;
+        slider->knob.h = rect_position_size.w;
+        slider->knob.x = rect_position_size.x;
+        slider->knob.y = rect_position_size.y + (initial_value - min_value) * (rect_position_size.h - slider->knob.h) / (max_value - min_value);
     }
     else
     {
-        slider->knob.w = h;
-        slider->knob.h = h;
-        slider->knob.x = x + (initial_value - min_value) * (w - slider->knob.w) / (max_value - min_value);
-        slider->knob.y = smaller_track ? y - (h / 4) : y;
+        slider->knob.w = rect_position_size.h;
+        slider->knob.h = rect_position_size.h;
+        slider->knob.x = rect_position_size.x + (initial_value - min_value) * (rect_position_size.w - slider->knob.w) / (max_value - min_value);
+        slider->knob.y = smaller_track ? rect_position_size.y - slider->knob.h / 4 : rect_position_size.y;
     }
 
     slider->min_value = min_value;
@@ -86,18 +99,6 @@ void initialize_slider(struct slider *slider, int x, int y, int w, int h, float 
 
     slider->track_color = track_color;
     slider->knob_color = knob_color;
-}
-
-void initialize_button(struct button *button, int x, int y, int w, int h, const char *label, SDL_Color bg_color, void (*callback)())
-{
-    button->rect.x = x;
-    button->rect.y = y;
-    button->rect.w = w;
-    button->rect.h = h;
-
-    button->label = label;
-    button->bg_color = bg_color;
-    button->callback = callback;
 }
 
 void render_button(SDL_Renderer *renderer, struct button *button)
@@ -143,12 +144,12 @@ void detect_release_from_slider(SDL_Event *event, struct slider *slider)
 
 void detect_drag_slider(SDL_Event *event, struct slider *slider, float *actual_parameter_to_change, void (*callback)(void))
 {
-    if (!slider->is_dragging)
+    if (slider->is_dragging == false)
         return;
 
     int mouse_position = slider->is_vertical ? event->motion.y : event->motion.x;
 
-    if (slider->is_vertical)
+    if (slider->is_vertical == true)
     {
         slider->knob.y = mouse_position - slider->knob.h / 2;
 

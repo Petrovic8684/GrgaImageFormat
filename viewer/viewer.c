@@ -15,8 +15,7 @@ float offset_x = 0.0, offset_y = 0.0;
 bool is_window_open = true;
 
 struct button btn_prev, btn_next;
-struct slider zoom_slider;
-struct slider horizontal_scrollbar, vertical_scrollbar;
+struct slider zoom_slider, horizontal_scrollbar, vertical_scrollbar;
 
 void initialize_sdl(void)
 {
@@ -159,14 +158,30 @@ void handle_file_drop(SDL_Event *event)
     render();
 }
 
+bool is_image_clipping_horizontally(void)
+{
+    if (window_width - current_image->header.width * pixel_size < 0.0)
+        return false;
+
+    return true;
+}
+
+bool is_image_clipping_vertically(void)
+{
+    if (window_height - current_image->header.height * pixel_size < 0.0)
+        return false;
+
+    return true;
+}
+
 void init_gui(void)
 {
-    initialize_button(&btn_prev, 40, window_height / 2 - 20, 60, 40, "<", (SDL_Color){210, 210, 210, 255}, &change_to_previous_image);
-    initialize_button(&btn_next, window_width - 100, window_height / 2 - 20, 60, 40, ">", (SDL_Color){210, 210, 210, 255}, &change_to_next_image);
+    initialize_button(&btn_prev, (SDL_Rect){40, window_height / 2 - 20, 60, 40}, (SDL_Color){210, 210, 210, 255}, "<", &change_to_previous_image);
+    initialize_button(&btn_next, (SDL_Rect){window_width - 100, window_height / 2 - 20, 60, 40}, (SDL_Color){210, 210, 210, 255}, ">", &change_to_next_image);
 
-    initialize_slider(&zoom_slider, (window_width - 300) / 2, window_height - 50, 300, 20, MIN_PIXEL_SIZE, MAX_PIXEL_SIZE, pixel_size, (SDL_Color){210, 210, 210, 255}, (SDL_Color){100, 100, 255, 255}, false, true);
-    initialize_slider(&horizontal_scrollbar, 0, window_height - 15, window_width - 15, 15, -500, 500, 0, (SDL_Color){230, 230, 230, 255}, (SDL_Color){200, 200, 200, 255}, false, false);
-    initialize_slider(&vertical_scrollbar, window_width - 15, 0, 15, window_height - 15, -500, 500, 0, (SDL_Color){230, 230, 230, 255}, (SDL_Color){200, 200, 200, 255}, true, false);
+    initialize_slider(&zoom_slider, (SDL_Rect){(window_width - 300) / 2, window_height - 50, 300, 20}, (SDL_Color){210, 210, 210, 255}, (SDL_Color){100, 100, 255, 255}, false, MIN_PIXEL_SIZE, MAX_PIXEL_SIZE, pixel_size, true);
+    initialize_slider(&horizontal_scrollbar, (SDL_Rect){0, window_height - 15, window_width - 15, 15}, (SDL_Color){230, 230, 230, 255}, (SDL_Color){200, 200, 200, 255}, false, -500, 500, 0, false);
+    initialize_slider(&vertical_scrollbar, (SDL_Rect){window_width - 15, 0, 15, window_height - 15}, (SDL_Color){230, 230, 230, 255}, (SDL_Color){200, 200, 200, 255}, true, -500, 500, 0, false);
 }
 
 void render(void)
@@ -203,7 +218,7 @@ void render(void)
             SDL_SetRenderDrawColor(renderer, r, g, b, 255);
 
             rect.x = (window_width - width * pixel_size) / 2 - offset_x + x * pixel_size;
-            rect.y = (window_height - height * pixel_size) / 3 - offset_y + y * pixel_size;
+            rect.y = (window_height - height * pixel_size) / 2 - offset_y + y * pixel_size;
             rect.w = pixel_size;
             rect.h = pixel_size;
 
@@ -215,9 +230,13 @@ void render(void)
         render_button(renderer, &btn_prev);
         render_button(renderer, &btn_next);
     }
+
     render_slider(renderer, &zoom_slider);
-    render_slider(renderer, &horizontal_scrollbar);
-    render_slider(renderer, &vertical_scrollbar);
+
+    if (is_image_clipping_horizontally() == false)
+        render_slider(renderer, &horizontal_scrollbar);
+    if (is_image_clipping_vertically() == false)
+        render_slider(renderer, &vertical_scrollbar);
 
     SDL_RenderPresent(renderer);
 }
